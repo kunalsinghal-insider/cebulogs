@@ -1,14 +1,18 @@
 'use client';
-import { useState } from 'react';
-
-// This is where your data will eventually be stored/fetched
-const mockData = {
-  SFMC: [{ file: 'subscribers-a.csv', total: 5000, errors: 2, details: ['Row 102: Missing email', 'Row 400: Invalid format'] }],
-  CIAM: [{ file: 'users-b.csv', total: 1200, errors: 0, details: [] }]
-};
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const [logs, setLogs] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState('SFMC');
+
+  useEffect(() => {
+    fetch('/api/logs').then(res => res.json()).then(data => setLogs(data));
+  }, []);
+
+  const deleteFile = async (fileName: string) => {
+    await fetch('/api/logs', { method: 'DELETE', body: JSON.stringify({ fileName }), headers: {'Content-Type': 'application/json'} });
+    setLogs(logs.filter(l => l.file !== fileName));
+  };
 
   return (
     <div className="p-10">
@@ -27,18 +31,18 @@ export default function Home() {
         <thead>
           <tr className="bg-gray-100">
             <th className="border p-2">File Name</th>
-            <th className="border p-2">Total Rows</th>
-            <th className="border p-2">Error Rows</th>
-            <th className="border p-2">Error Details</th>
+            <th className="border p-2">Total</th>
+            <th className="border p-2">Errors</th>
+            <th className="border p-2">Action</th>
           </tr>
         </thead>
         <tbody>
-          {(mockData[activeCategory as keyof typeof mockData] || []).map((row, i) => (
+          {logs.filter(l => l.folder === activeCategory).map((row, i) => (
             <tr key={i}>
               <td className="border p-2">{row.file}</td>
               <td className="border p-2">{row.total}</td>
-              <td className="border p-2">{row.errors}</td>
-              <td className="border p-2 text-red-500">{row.details.join(', ')}</td>
+              <td className="border p-2 text-red-500">{row.errors}</td>
+              <td className="border p-2"><button onClick={() => deleteFile(row.file)} className="text-red-600 font-bold">Delete</button></td>
             </tr>
           ))}
         </tbody>
