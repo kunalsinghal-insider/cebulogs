@@ -6,8 +6,11 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState('SFMC');
 
   useEffect(() => {
-    fetch('/api/logs').then(res => res.json()).then(data => setLogs(data));
-  }, []);
+  // Adding a timestamp ensures the URL is unique, preventing browser cache
+  fetch('/api/logs', { cache: 'no-store' }) 
+    .then(res => res.json())
+    .then(data => setLogs(data));
+}, []);
 
   const deleteFile = async (fileName: string) => {
     await fetch('/api/logs', { method: 'DELETE', body: JSON.stringify({ fileName }), headers: {'Content-Type': 'application/json'} });
